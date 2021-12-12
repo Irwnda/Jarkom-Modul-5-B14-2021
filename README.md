@@ -33,6 +33,37 @@ Berdasarkan tabel tersebut, didapat pembagian IP sebagai berikut:
 |        | NetMask           | 255.255.255.248 |
 |        | Broadcast Address | 10.14.0.23      |
 
+## Konfigurasi Script
+### Foosha
+```
+route add -net 10.14.0.0 netmask 255.255.240.0 gw 10.14.0.2
+route add -net 10.14.16.0 netmask 255.255.248.0 gw 10.14.0.6
+
+apt-get update
+apt-get install isc-dhcp-relay -y
+echo '# Defaults for isc-dhcp-relay initscript
+# sourced by /etc/init.d/isc-dhcp-relay
+# installed at /etc/default/isc-dhcp-relay by the maintainer scripts
+
+#
+# This is a POSIX shell fragment
+#
+
+# What servers should the DHCP relay forward requests to?
+SERVERS="10.14.0.11"
+
+# On what interfaces should the DHCP relay (dhrelay) serve DHCP requests?
+INTERFACES="eth1 eth2"
+
+# Additional options that are passed to the DHCP relay daemon?
+OPTIONS=""' > /etc/default/isc-dhcp-relay
+service isc-dhcp-relay restart
+
+#BUAT INTERNET 
+ipgateway=$(ip -4 addr show eth0 | grep inet | awk '{ print substr( $2, 1, length($2)-3 ) }')
+iptables -t nat -A POSTROUTING -o eth0 -j SNAT --to-source $ipgateway
+```
+
 
 ## Network Configuration
 ### Foosha
